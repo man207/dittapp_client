@@ -1,8 +1,10 @@
 <template>
-  <div id="app">
+  <v-app>
     <app-header />
-    <router-view></router-view>
-  </div>
+    <v-main>
+      <router-view></router-view>
+    </v-main>
+  </v-app>
 </template>
 
 <script>
@@ -19,8 +21,5 @@
 </script>
 
 <style>
-  body, html {
-    margin: 0;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  }
+
 </style>

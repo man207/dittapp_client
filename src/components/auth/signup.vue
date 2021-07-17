@@ -1,144 +1,181 @@
 <template>
-  <div id="signup">
-    <div class="signup-form">
-      <form @submit.prevent="onSubmit">
-        <div class="input">
-          <label for="firstName">First Name</label>
-          <input
-                  type="text"
-                  id="firstName"
-                  v-model="firstName">
-        </div>
+  <v-container fill-height="fill-height">
+    <v-layout align-center justify-center>
+      <v-flex class="signup-form text-center">
+        <v-card light="light">
+          <v-card-text>
+            <div class="subheading">ساخت حساب کاربری</div>
+            <v-form v-model="valid" ref="form">
+              <v-text-field
+                v-model="firstName"
+                light="light"
+                label="نام"
+                type="firstName"
+                required
+              ></v-text-field>
+              <v-text-field
+                v-model="lastName"
+                light="light"
+                label="نام خانوادگی"
+                type="lastName"
+                required
+              ></v-text-field>
+              <v-text-field
+                v-model="email"
+                light="light"
+                label="ایمیل"
+                :rules="rules.email"
+                type="email"
+                required
+              ></v-text-field>
+              <v-text-field
+                v-model="password"
+                light="light"
+                label="گذرواژه"
+                type="password"
+                :rules="rules.password"
+              ></v-text-field>
+              <v-text-field
+                v-model="password"
+                light="light"
+                label="تکرار گذرواژه"
+                type="confirmPassword"
+                :rules="rules.password"
+              ></v-text-field>
+              <v-checkbox
+                light="light"
+                label="با قوانین موافقم"
+                :rules="rules.policy"
+              ></v-checkbox>
+              <v-btn
+                @click.prevent=""
+                :disabled="!valid"
+                @click="onSubmit()"
+                text
+                type="submit"
+                >ثبت نام</v-btn
+              >
+            </v-form>
+          </v-card-text>
+        </v-card>
+      </v-flex>
+    </v-layout>
+    <v-dialog
+      v-model="dialog.active"
+      persistent
+      max-width="290"
+    >
 
-
-        <div class="input">
-          <label for="lastName">Last Name</label>
-          <input
-                  type="text"
-                  id="lastName"
-                  v-model="lastName">
-        </div>
-
-        <div class="input">
-          <label for="email">Mail</label>
-          <input
-                  type="email"
-                  id="email"
-                  v-model="email">
-        </div>
-
-        <div class="input">
-          <label for="password">Password</label>
-          <input
-                  type="password"
-                  id="password"
-                  v-model="password">
-        </div>
-        <div class="input">
-          <label for="confirm-password">Confirm Password</label>
-          <input
-                  type="password"
-                  id="confirm-password"
-                  v-model="confirmPassword">
-        </div>
-
-
-        <div class="submit">
-          <button type="submit">Submit</button>
-        </div>
-      </form>
-    </div>
-  </div>
+      <v-card>
+        <v-card-title class="text-h5">
+          خطا
+        </v-card-title>
+        <v-card-subtitle>
+          {{dialog.msg}}
+        </v-card-subtitle>
+        <v-card-text>
+            <div v-for="error , i in dialog.errors" :key="i">
+                {{error.msg}}
+            </div>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="green darken-1"
+            text
+            @click="errorSeen()"
+          >
+            فهمیدم
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-snackbar
+      v-model="snackBar"
+      timeout=2000
+    >
+      ثبت نام با موفقیت انجام شد
+    </v-snackbar>
+  </v-container>
 </template>
 
 <script>
-  export default {
-    data () {
-      return {
-        firstName: '',
-        lastName: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-      }
+import axios from './axios-auth'
+
+export default {
+  data() {
+    return {
+      valid: false,
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      dialog: {
+        active: false,
+        msg: "",
+        errors: []
+      },
+      snackBar: false,
+      rules: {
+        password: [
+          (v) => !!v || "گذر واژه الزامی است",
+          (v) => v.length >= 5 || "طول گذرواژه بیشتر از 5 می‌باشد",
+        ],
+        policy: [
+          (v) => v === true || "پذیرش قوانین الزامی است",
+        ],
+        email: [
+          (v) => !!v || "ایمیل الزامی است",
+          (v) => /.+@.+/.test(v) || "ایمیل صحیح نیست",
+        ],
+      },
+    };
+  },
+  methods: {
+    onSubmit() {
+      const formData = {
+        email: this.email,
+        password: this.password,
+        firstName: this.firstName,
+        lastName: this.lastName,
+
+      };
+      console.log(formData);
+      this.signup(formData);
     },
-    methods: {
-      onSubmit () {
-        const formData = {
-          email: this.email,
-          password: this.password,
-          firstName: this.firstName,
-          lastName: this.lastName,
-        }
-        console.log(formData)
-        this.$store.dispatch('signup', formData)
-      }
+    signup (authData) {
+      axios.post('/signup', {
+        email: authData.email,
+        password: authData.password,
+        firstName: authData.firstName,
+        lastName: authData.lastName,
+      }).then(res => {
+          if (res) {
+            this.snackBar = true,
+            setTimeout( ()=> {
+              this.$router.push({ path: '/signin' });
+            }, 2000)
+            
+          }
+        }).catch(error => {
+          this.dialog.active = true;
+          this.dialog.msg = error.response.data.message;
+          this.dialog.errors = error.response.data.data;
+          console.log(error.response.data);
+        })
+    },
+    errorSeen () {
+      this.$refs.form.reset()
+      this.dialog.active = false;
+      this.dialog.msg = "";
     }
-  }
+  },
+};
 </script>
 
 <style scoped>
-  .signup-form {
-    width: 400px;
-    margin: 30px auto;
-    border: 1px solid #eee;
-    padding: 20px;
-    box-shadow: 0 2px 3px #ccc;
-  }
-
-  .input {
-    margin: 10px auto;
-  }
-
-  .input label {
-    display: block;
-    color: #4e4e4e;
-    margin-bottom: 6px;
-  }
-
-  .input.inline label {
-    display: inline;
-  }
-
-  .input input {
-    font: inherit;
-    width: 100%;
-    padding: 6px 12px;
-    box-sizing: border-box;
-    border: 1px solid #ccc;
-  }
-
-  .input.inline input {
-    width: auto;
-  }
-
-  .input input:focus {
-    outline: none;
-    border: 1px solid rgb(3, 141, 14);
-    background-color: #eee;
-  }
-
-  .submit button {
-    border: 1px solid rgb(3, 141, 14);
-    color: rgb(3, 141, 14);
-    padding: 10px 20px;
-    font: inherit;
-    cursor: pointer;
-  }
-
-  .submit button:hover,
-  .submit button:active {
-    background-color: rgb(3, 141, 14);
-    color: white;
-  }
-
-
-  .submit button[disabled],
-  .submit button[disabled]:hover,
-  .submit button[disabled]:active {
-    border: 1px solid #ccc;
-    background-color: transparent;
-    color: #ccc;
-    cursor: not-allowed;
-  }
+.signup-form {
+  max-width: 500px;
+}
 </style>
