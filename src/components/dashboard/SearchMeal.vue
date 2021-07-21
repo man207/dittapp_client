@@ -77,22 +77,22 @@
         </v-list>
       </v-card-text>
       <template v-if="this.searchResults[this.selected]">
-        <v-card-title>{{searchResults[selected].name}}</v-card-title>
+        <v-card-title>{{selectedResult.name}}</v-card-title>
 
       <v-card-text>
         <v-container>
           <v-row align="center">
             <v-col class="d-flex" cols="2" sm="2">
-              <v-text-field label="مقدار" v-model="amount" type="number"></v-text-field>
+              <v-text-field label="مقدار" v-model="amount" type="number" min="0"></v-text-field>
             </v-col>
             <v-col class="d-flex" cols="2" sm="2">
               <v-select 
-              :items="[searchResults[selected].unit , `${searchResults[selected].serving.name}: ${searchResults[selected].serving.units} ${searchResults[selected].unit}`]"
-               v-model="serving" label="پیمانه"></v-select>
+              :items="servingItems"
+               v-model="serving" return-object label="پیمانه"></v-select>
             </v-col>
             <v-col class="d-flex" cols="2" sm="2">
               <v-text-field
-                :value="cosumeAmounts.calorie * amount"
+                :value="cosumeAmounts.calorie"
                 label="کالری"
                 outlined
                 disabled
@@ -100,7 +100,7 @@
             </v-col>
             <v-col class="d-flex" cols="2" sm="2">
               <v-text-field
-                :value="cosumeAmounts.protein * amount"
+                :value="cosumeAmounts.protein"
                 label="پروتیین"
                 outlined
                 disabled
@@ -108,7 +108,7 @@
             </v-col>
             <v-col class="d-flex" cols="2" sm="2">
               <v-text-field
-                :value="cosumeAmounts.carb * amount"
+                :value="cosumeAmounts.carb"
                 label="کربو"
                 outlined
                 disabled
@@ -116,7 +116,7 @@
             </v-col>
             <v-col class="d-flex" cols="2" sm="2">
               <v-text-field
-                :value="cosumeAmounts.fat * amount"
+                :value="cosumeAmounts.fat"
                 label="چربی"
                 outlined
                 disabled
@@ -148,28 +148,49 @@ export default {
       message: "برای جستجو واژه ای وارد کنید",
       showTab: true,
       dialog: false,
-      
-      
+      amount: 0,
+      serving: null
     };
   },
   computed: {
     cosumeAmounts() {
       //this is too long?
+      let w  =  this.selectedResult
         let x = {
-          calorie: this.serving == 0 ? this.searchResults[this.selected].calorie * this.amount : this.searchResults[this.selected].calorie * this.amount * this.searchResults[this.selected].serving.units,
-          protein: this.serving == 0 ? this.searchResults[this.selected].protein * this.amount : this.searchResults[this.selected].protein * this.amount * this.searchResults[this.selected].serving.units,
-          carb: this.serving == 0 ? this.searchResults[this.selected].carb * this.amount : this.searchResults[this.selected].carb * this.amount * this.searchResults[this.selected].serving.units,
-          fat: this.serving == 0 ? this.searchResults[this.selected].fat * this.amount : this.searchResults[this.selected].fat * this.amount * this.searchResults[this.selected].serving.units,
+          calorie: w.calorie * this.amount * this.serving.value,
+          protein: w.protein * this.amount * this.serving.value,
+          carb: w.carb * this.amount * this.serving.value,
+          fat:  w.fat * this.amount * this.serving.value,
         }
+        console.log(this.serving.value)
+        return x
+      },
+      selectedResult() {
+        let x = {...this.searchResults[this.selected]}
+        if (x.unit == 'gr') x.unit = 'گرم' 
+        if (x.unit == 'ml') x.unit = 'میلی لیتر' 
+        return x
+      },
+      servingItems() {
+        const w = this.selectedResult;
+        let x = [
+          {text : w.unit , value: 1},
+          {text : `${w.serving.name}: ${w.serving.units} ${w.unit}` , value: w.serving.units},
+        ]
         return x
       }
+  },
+  watch: {
+    selectedResult(newVal) {
+      this.serving = {text: newVal.unit , value: 1}
+    }
   },
   methods: {
     addToConsume() {
       let food = {
-      "food": this.searchResults[this.selected]._id,
+      "food": this.selectedResult._id,
       "amount" : this.amount,
-      "serving" : this.serving == 0 ? false : true
+      "serving" : this.serving.value == 1 ? false : true
       }
       const config = {
         headers: { Authorization: `Bearer ${this.$store.state.token}` },
@@ -177,12 +198,27 @@ export default {
       axios
         .post(`/profile/consume/add`, food,  config)
         .then((res) => {
-          this.dialog = false
+          Object.assign(this.$data, this.$options.data.call(this));
           console.log(res);
         })
         .catch((err) => {
           this.message = err.message;
         });
+      axios
+        .get(`/profile/consume/day/${this.$store.state.day}`, config)
+        .then((res) => {
+          let x = res.data.result;
+          x.map( food => {
+            let w = food.food;
+            if (w.unit == 'gr') w.unit = 'گرم' 
+            if (w.unit == 'ml') w.unit = 'میلی لیتر' 
+          })
+          this.$store.dispatch("setConsume" , {consume: x});
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    
     },
     clearText() {
       this.$refs.searchBar.blur();
@@ -209,14 +245,7 @@ export default {
           this.message = err.data.message;
         });
     },
-  },
-  filters: {
-  unitToPersian: function (value) {
-    if (!value) return ''
-    if (value === 'ml') return 'میلی‌لیتر'
-    if (value === 'gr') return 'گرم'
   }
-}
 
 };
 </script>

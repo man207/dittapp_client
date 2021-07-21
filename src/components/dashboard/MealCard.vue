@@ -10,8 +10,8 @@
           <v-list two-line>
             <v-list-item v-for="food in consume" :key="food._id">
               <v-list-item-content>
-                <v-list-item-title>غذا {{ food.food.name }}</v-list-item-title>
-                <v-list-item-subtitle>کالری های غذا</v-list-item-subtitle>
+                <v-list-item-title>{{ food.food.name }}</v-list-item-title>
+                <v-list-item-subtitle>{{food.amount}} {{food.serving ? food.food.serving.name : food.food.unit }} - {{food.serving ? food.food.calorie * food.amount * food.food.serving.units : food.food.calorie * food.amount}} کالری</v-list-item-subtitle>
               </v-list-item-content>
               <v-list-item-action>
                 <v-btn icon>
@@ -29,7 +29,7 @@
       </v-row>
       <v-row justify="center">
         <v-col cols="12" class="text-center">
-          <add-meal></add-meal>
+          <search-meal></search-meal>
         </v-col>
       </v-row>
     </v-card>
@@ -38,12 +38,12 @@
 
 <script>
 
-import AddMeal from "./AddMeal.vue";
+import SearchMeal from "./SearchMeal.vue";
 import axios from 'axios'
 
 export default {
   components: {
-    AddMeal
+    SearchMeal
   },
   props: {
     title: String,
@@ -64,7 +64,13 @@ export default {
       axios
         .get(`/profile/consume/day/${this.$store.state.day}`, config)
         .then((res) => {
-          this.$store.dispatch("setConsume" , {consume: res.data.result});
+          let x = res.data.result;
+          x.map( food => {
+            let w = food.food;
+            if (w.unit == 'gr') w.unit = 'گرم' 
+            if (w.unit == 'ml') w.unit = 'میلی لیتر' 
+          })
+          this.$store.dispatch("setConsume" , {consume: x});
         })
         .catch((err) => {
           console.log(err);
