@@ -9,7 +9,10 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     token: null,
-    userId: null
+    userId: null,
+    day: null,
+    consume: null,
+    burn:null
   },
   mutations: {
     authUser (state, userData) {
@@ -19,6 +22,15 @@ export default new Vuex.Store({
     clearAuthData (state) {
       state.token = null
       state.userId = null
+    },
+    changeDay (state , day) {
+      state.day = day.day.replaceAll('/','-')
+    },
+    changeConsume (state , consume) {
+      state.consume = consume.consume.consume
+    },
+    changeburn (state , burn) {
+      state.burn = burn.burn.burn
     }
   },
   actions: {
@@ -72,14 +84,41 @@ export default new Vuex.Store({
       localStorage.removeItem('token')
       localStorage.removeItem('userId')
       router.replace('/signin')
+    },
+    setDay({commit} , day) {
+      commit('changeDay', {
+        day
+      })
+    },
+    setConsume({commit} , consume ) {
+      commit('changeConsume', {
+        consume:consume
+      })
+    },
+    setBurn({commit} , burn ) {
+      commit('changeBurn', {
+        burn:burn
+      })
     }
   },
   getters: {
     user (state) {
       return state.user
     },
+    token (state) {
+      return state.token
+    },
     isAuthenticated (state) {
       return state.token !== null
-    }
+    },
+    day (state) {
+      return state.day
+    },
+    consume (state) {
+      return state.consume
+    },
+    burn (state) {
+      return state.burn
+    },
   }
 })

@@ -6,7 +6,7 @@ import axios from 'axios'
 import vuetify from './plugins/vuetify'
 
 
-axios.defaults.baseURL = 'http://localost:8085/'
+axios.defaults.baseURL = 'http://localhost:8085/'
 axios.defaults.headers.get['Accepts'] = 'application/json'
 
 const reqInterceptor = axios.interceptors.request.use(config => {

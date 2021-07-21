@@ -1,95 +1,230 @@
 <template>
-<v-dialog v-model="dialog" persistent max-width="900px" scrollable>
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn color="primary" dark v-bind="attrs" v-on="on">
-                Open Dialog
-              </v-btn>
-            </template>
+  <v-dialog v-model="dialog" persistent max-width="900px" scrollable>
+    <template v-slot:activator="{ on, attrs }">
+      <v-btn color="primary"  v-bind="attrs" v-on="on"> اضافه کردن غذای جدید </v-btn>
+    </template>
 
-  <v-card>
-    
-    <v-toolbar flat dark color="primary">
-      <v-btn icon dark @click="dialog = false">
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
-    </v-toolbar>
-    <v-card-title>
-      <v-text-field
-        ref="seatchBar"
-        v-model="searchPhrase"
-        :append-icon="showTab ? '' : 'mdi-chevron-left'"
-        @focus="showTab = false"
-        @click:append="clearText"
-        label="جستجوی غذا..."
-        solo
-        filled
-        prepend-inner-icon="mdi-magnify"
-      >
-      </v-text-field>
-      
-    </v-card-title>
-    <v-card-text>
-      <v-expand-transition>
-        <v-card v-if="showTab">
-          <v-tabs fixed-tabs>
-            <v-tab>
-              اخیر
-              <v-icon small> mdi-history </v-icon>
-            </v-tab>
-            <v-tab>
-              تکراری
-              <v-icon small> mdi-sync </v-icon>
-            </v-tab>
-            <v-tab>
-              علاقه
-              <v-icon small> mdi-heart </v-icon>
-            </v-tab>
-          </v-tabs>
-        </v-card>
-      </v-expand-transition>
-      <v-row>
-        <v-col cols="12" sm="6" v-for="i in 33" :key="i">
-          <v-card>
-            <v-card-title>
-              نام غذا
-              <v-spacer></v-spacer>
-              <v-btn depressed icon color="primary">
-                <v-icon> mdi-plus </v-icon>
-              </v-btn>
-              <v-btn depressed icon color="red">
-                <v-icon outlined> mdi-heart-outline </v-icon>
-              </v-btn>
-            </v-card-title>
-            <v-card-subtitle> شرکت غذا </v-card-subtitle>
+    <v-card>
+      <v-toolbar flat dark color="primary">
+        <v-btn icon dark @click="dialog = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-toolbar>
+      <v-card-title>
+        <v-text-field
+          ref="searchBar"
+          v-model="searchPhrase"
+          :append-icon="showTab ? '' : 'mdi-chevron-left'"
+          @focus="showTab = false"
+          @click:append="clearText"
+          @input="search"
+          label="جستجوی غذا..."
+          solo
+          filled
+          prepend-inner-icon="mdi-magnify"
+        >
+        </v-text-field>
+      </v-card-title>
+      <v-card-text class="searchPart">
+        <!-- <v-expand-transition>
+          <v-card v-if="showTab">
+            <v-tabs fixed-tabs>
+              <v-tab>
+                اخیر
+                <v-icon small> mdi-history </v-icon>
+              </v-tab>
+              <v-tab>
+                تکراری
+                <v-icon small> mdi-sync </v-icon>
+              </v-tab>
+              <v-tab>
+                علاقه
+                <v-icon small> mdi-heart </v-icon>
+              </v-tab>
+            </v-tabs>
           </v-card>
-        </v-col>
-      </v-row>
-    </v-card-text>
-  </v-card>
-</v-dialog>
+        </v-expand-transition> -->
+        <div v-if="searchResults.length == 0" class="flex justify-center align-center">
+          {{this.message}}
+        </div>
+        <v-list two-line>
+          <v-list-item-group v-model="selected" active-class="pink--text">
+            <template v-for="(food, index) in searchResults">
+              <v-list-item :key="food._id">
+                <template>
+                  <v-list-item-content>
+                    <v-list-item-title v-text="food.name"></v-list-item-title>
+
+                    <v-list-item-subtitle
+                      class="text--primary"
+                      v-text="food.desc"
+                    ></v-list-item-subtitle>
+                  </v-list-item-content>
+
+                  <v-list-item-action>
+
+                    <v-icon color="yellow darken-3"> mdi-plus </v-icon>
+                  </v-list-item-action>
+                </template>
+              </v-list-item>
+
+              <v-divider
+                v-if="index < searchResults.length - 1"
+                :key="index"
+              ></v-divider>
+            </template>
+          </v-list-item-group>
+        </v-list>
+      </v-card-text>
+      <template v-if="this.searchResults[this.selected]">
+        <v-card-title>{{searchResults[selected].name}}</v-card-title>
+
+      <v-card-text>
+        <v-container>
+          <v-row align="center">
+            <v-col class="d-flex" cols="2" sm="2">
+              <v-text-field label="مقدار" v-model="amount" type="number"></v-text-field>
+            </v-col>
+            <v-col class="d-flex" cols="2" sm="2">
+              <v-select 
+              :items="[searchResults[selected].unit , `${searchResults[selected].serving.name}: ${searchResults[selected].serving.units} ${searchResults[selected].unit}`]"
+               v-model="serving" label="پیمانه"></v-select>
+            </v-col>
+            <v-col class="d-flex" cols="2" sm="2">
+              <v-text-field
+                :value="cosumeAmounts.calorie * amount"
+                label="کالری"
+                outlined
+                disabled
+              ></v-text-field>
+            </v-col>
+            <v-col class="d-flex" cols="2" sm="2">
+              <v-text-field
+                :value="cosumeAmounts.protein * amount"
+                label="پروتیین"
+                outlined
+                disabled
+              ></v-text-field>
+            </v-col>
+            <v-col class="d-flex" cols="2" sm="2">
+              <v-text-field
+                :value="cosumeAmounts.carb * amount"
+                label="کربو"
+                outlined
+                disabled
+              ></v-text-field>
+            </v-col>
+            <v-col class="d-flex" cols="2" sm="2">
+              <v-text-field
+                :value="cosumeAmounts.fat * amount"
+                label="چربی"
+                outlined
+                disabled
+              ></v-text-field>
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-card-text>
+
+      <v-card-actions>
+        <v-btn color="deep-purple lighten-2" text @click="addToConsume">
+          ثبت
+        </v-btn>
+      </v-card-actions>
+      </template>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   data() {
     return {
+      selected: -1,
       searchPhrase: "",
-      searchResaults: {},
+      searchResults: [],
+      message: "برای جستجو واژه ای وارد کنید",
       showTab: true,
-      dialog:false
+      dialog: false,
+      
+      
     };
   },
+  computed: {
+    cosumeAmounts() {
+      //this is too long?
+        let x = {
+          calorie: this.serving == 0 ? this.searchResults[this.selected].calorie * this.amount : this.searchResults[this.selected].calorie * this.amount * this.searchResults[this.selected].serving.units,
+          protein: this.serving == 0 ? this.searchResults[this.selected].protein * this.amount : this.searchResults[this.selected].protein * this.amount * this.searchResults[this.selected].serving.units,
+          carb: this.serving == 0 ? this.searchResults[this.selected].carb * this.amount : this.searchResults[this.selected].carb * this.amount * this.searchResults[this.selected].serving.units,
+          fat: this.serving == 0 ? this.searchResults[this.selected].fat * this.amount : this.searchResults[this.selected].fat * this.amount * this.searchResults[this.selected].serving.units,
+        }
+        return x
+      }
+  },
   methods: {
-    searchFood() {},
+    addToConsume() {
+      let food = {
+      "food": this.searchResults[this.selected]._id,
+      "amount" : this.amount,
+      "serving" : this.serving == 0 ? false : true
+      }
+      const config = {
+        headers: { Authorization: `Bearer ${this.$store.state.token}` },
+      };
+      axios
+        .post(`/profile/consume/add`, food,  config)
+        .then((res) => {
+          this.dialog = false
+          console.log(res);
+        })
+        .catch((err) => {
+          this.message = err.message;
+        });
+    },
     clearText() {
-      this.$refs.seatchBar.blur();
+      this.$refs.searchBar.blur();
       this.showTab = true;
       this.searchPhrase = "";
     },
+    search() {
+      if (this.searchPhrase.length < 1) {
+        return;
+      }
+      const config = {
+        headers: { Authorization: `Bearer ${this.$store.state.token}` },
+      };
+      axios
+        .get(`/food/search/${this.searchPhrase}`, config)
+        .then((res) => {
+          this.searchResults = res.data.result;
+          if (res.data.result.length === 0 ) {
+            this.message = "موردی یافت نشد"
+          }
+          console.log(this.searchResults);
+        })
+        .catch((err) => {
+          this.message = err.data.message;
+        });
+    },
   },
-  computed: {},
+  filters: {
+  unitToPersian: function (value) {
+    if (!value) return ''
+    if (value === 'ml') return 'میلی‌لیتر'
+    if (value === 'gr') return 'گرم'
+  }
+}
+
 };
 </script>
 
 <style scoped>
+.searchPart {
+  min-height: 200px;
+  max-height: 300px;
+}
+
 </style>

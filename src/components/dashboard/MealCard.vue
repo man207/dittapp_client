@@ -8,9 +8,9 @@
       <v-row>
         <v-col cols="12">
           <v-list two-line>
-            <v-list-item v-for="i in 12" :key="i">
+            <v-list-item v-for="food in consume" :key="food._id">
               <v-list-item-content>
-                <v-list-item-title>غذا {{ i }}</v-list-item-title>
+                <v-list-item-title>غذا {{ food.food.name }}</v-list-item-title>
                 <v-list-item-subtitle>کالری های غذا</v-list-item-subtitle>
               </v-list-item-content>
               <v-list-item-action>
@@ -27,9 +27,9 @@
           </v-list>
         </v-col>
       </v-row>
-      <v-row>
-        <v-col cols="12">
-          <activity-card></activity-card>
+      <v-row justify="center">
+        <v-col cols="12" class="text-center">
+          <add-meal></add-meal>
         </v-col>
       </v-row>
     </v-card>
@@ -38,23 +38,39 @@
 
 <script>
 
-import ActivityCard from "./AddMeal.vue";
-
+import AddMeal from "./AddMeal.vue";
+import axios from 'axios'
 
 export default {
   components: {
-    ActivityCard
+    AddMeal
   },
   props: {
     title: String,
     name: String,
   },
-  data() {
-    
+  computed: {
+    consume() {
+      return this.$store.getters.consume
+    }
   },
   methods: {
     selectFood() {},
   },
+  mounted() {
+    const config = {
+        headers: { Authorization: `Bearer ${this.$store.state.token}` },
+      };
+      axios
+        .get(`/profile/consume/day/${this.$store.state.day}`, config)
+        .then((res) => {
+          this.$store.dispatch("setConsume" , {consume: res.data.result});
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    
+  }
 };
 </script>
 

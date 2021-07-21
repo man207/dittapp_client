@@ -16,6 +16,8 @@
     },
     created () {
       this.$store.dispatch('tryAutoLogin')
+      let today = new Date();
+      this.$store.dispatch('setDay' , `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`)
     }
   }
 </script>

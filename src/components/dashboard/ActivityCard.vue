@@ -10,7 +10,7 @@
       <v-row>
         <v-col cols="12">
           <v-list two-line>
-            <v-list-item v-for="i in 12" :key="i">
+            <v-list-item v-for="i in foods" :key="i">
               <v-list-item-content>
                 <v-list-item-title>ورزش {{ i }}</v-list-item-title>
                 <v-list-item-subtitle>اطلاعات فعالیت</v-list-item-subtitle>
@@ -34,14 +34,31 @@
 </template>
 
 <script>
+import axios from 'axios'
 export default {
   props: {
     title: String,
     name: String,
   },
+  data() {
+    return {
+      foods: []
+    }
+  },
   methods: {
     selectFood() {},
+    getActivities(date) {
+      axios.get(`/profile/burn/day/${date}`)
+        .then(res => {
+          console.log(res)
+          this.foods = res
+        })
+        .catch(error => console.log(error))
+    }
   },
+  mounted() {
+
+  }
 };
 </script>
 
