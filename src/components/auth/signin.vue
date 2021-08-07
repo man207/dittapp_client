@@ -9,6 +9,7 @@
             <div class="subheading">ورود به حساب کاربری</div>
             <v-form
               v-model="valid"
+              ref="form"
             >
               <v-text-field
                 v-model="email"
@@ -63,13 +64,15 @@
       v-model="snackBar"
       timeout=2000
     >
-      ثبت نام با موفقیت انجام شد
+      ورود با موفقیت انجام شد
     </v-snackbar>
   </v-container>
 
 </template>
 
 <script>
+import axios from './axios-auth'
+
 export default {
   data() {
     return {
@@ -101,9 +104,42 @@ export default {
         password: this.password,
         rememberMe: this.rememberMe
       };
-      console.log(formData);
-      this.$store.dispatch("login", formData);
+      this.logIn(formData)
     },
+    logIn(authData) {
+      axios.post('/login', {
+        email: authData.email,
+        password: authData.password,
+      })
+        .then(res => {
+          const now = new Date()
+          const expirationDate = new Date(now.getTime() + res.data.expiresIn * 1000)
+          console.log(res.data)
+          if (authData.rememberMe) {
+            localStorage.setItem('token', res.data.token)
+            localStorage.setItem('userId', res.data.userId)
+            localStorage.setItem('expirationDate', expirationDate)
+          }
+          this.$store.dispatch('login' , res.data )
+          this.snackBar = true,
+            setTimeout( ()=> {
+              this.$router.push({ path: '/dashboard' });
+            }, 2000)
+
+          
+        })
+        .catch(error => {
+          this.dialog.active = true;
+          this.dialog.msg = error.response.data.message;
+          this.dialog.errors = error.response.data.data;
+          console.log(error.response.data);
+        })
+    },
+    errorSeen () {
+      this.$refs.form.reset()
+      this.dialog.active = false;
+      this.dialog.msg = "";
+    }
   },
 };
 </script>

@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import axios from '../components/auth/axios-auth'
+import axios from "axios";
 
 import router from '../router'
 
@@ -24,43 +24,31 @@ export default new Vuex.Store({
       state.userId = null
     },
     changeDay (state , day) {
-      state.day = day.day.replaceAll('/','-')
+      state.day = day.replaceAll('/','-')
     },
     changeConsume (state , consume) {
-      state.consume = consume.consume.consume
+      state.consume = consume
     },
-    changeburn (state , burn) {
-      state.burn = burn.burn.burn
+    changeBurn (state , burn) {
+      state.burn = burn
     }
   },
   actions: {
     setLogoutTimer ({commit}, expirationTime) {
+
       setTimeout(() => {
         commit('clearAuthData')
       }, expirationTime * 1000)
     },
-    login ({commit, dispatch}, authData) {
-      axios.post('/login', {
-        email: authData.email,
-        password: authData.password,
-      })
-        .then(res => {
-          console.log(res)
-          const now = new Date()
-          const expirationDate = new Date(now.getTime() + res.data.expiresIn * 1000)
-          if (authData.rememberMe) {
-            localStorage.setItem('token', res.data.token)
-            localStorage.setItem('userId', res.data.userId)
-            localStorage.setItem('expirationDate', expirationDate)
-          }
+    login ({commit, dispatch}, data) {
 
-          commit('authUser', {
-            token: res.data.token,
-            userId: res.data.userId
-          })
-          dispatch('setLogoutTimer', res.data.expiresIn)
-        })
-        .catch(error => console.log(error))
+      commit('authUser', {
+        token: data.token,
+        userId: data.userId
+      })
+
+      dispatch('setLogoutTimer', data.expiresIn)
+
     },
     tryAutoLogin ({commit}) {
       const token = localStorage.getItem('token')
@@ -85,20 +73,46 @@ export default new Vuex.Store({
       localStorage.removeItem('userId')
       router.replace('/signin')
     },
-    setDay({commit} , day) {
-      commit('changeDay', {
+    setDay({commit , dispatch} , day) {
+       commit('changeDay', 
         day
-      })
+      )
+      dispatch('setConsume')
+      dispatch('setBurn')
     },
-    setConsume({commit} , consume ) {
-      commit('changeConsume', {
-        consume:consume
-      })
+    setConsume({commit, state } ) {
+      const config = {
+        headers: { Authorization: `Bearer ${state.token}` },
+      };
+      axios
+        .get(`/profile/consume/day/${state.day}`, config)
+        .then((res) => {
+          let x = res.data.result;
+          x.map( food => {
+            let w = food.food;
+            if (w.unit == 'gr') w.unit = 'گرم' 
+            if (w.unit == 'ml') w.unit = 'میلی لیتر' 
+          })
+          commit('changeConsume', x)
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      
     },
-    setBurn({commit} , burn ) {
-      commit('changeBurn', {
-        burn:burn
-      })
+    setBurn({commit , state} ) {
+      const config = {
+        headers: { Authorization: `Bearer ${state.token}` },
+      };
+      axios
+        .get(`/profile/burn/day/${state.day}`, config)
+        .then((res) => {
+          let x = res.data.result;
+          commit('changeBurn', x);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     }
   },
   getters: {
@@ -112,7 +126,8 @@ export default new Vuex.Store({
       return state.token !== null
     },
     day (state) {
-      return state.day
+      let x = state.day.replaceAll('-','/')
+      return new Date(x)
     },
     consume (state) {
       return state.consume

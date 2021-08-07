@@ -190,7 +190,8 @@ export default {
       let food = {
       "food": this.selectedResult._id,
       "amount" : this.amount,
-      "serving" : this.serving.value == 1 ? false : true
+      "serving" : this.serving.value == 1 ? false : true,
+      "date" : this.$store.getters.day
       }
       const config = {
         headers: { Authorization: `Bearer ${this.$store.state.token}` },
@@ -204,20 +205,7 @@ export default {
         .catch((err) => {
           this.message = err.message;
         });
-      axios
-        .get(`/profile/consume/day/${this.$store.state.day}`, config)
-        .then((res) => {
-          let x = res.data.result;
-          x.map( food => {
-            let w = food.food;
-            if (w.unit == 'gr') w.unit = 'گرم' 
-            if (w.unit == 'ml') w.unit = 'میلی لیتر' 
-          })
-          this.$store.dispatch("setConsume" , {consume: x});
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+      this.$store.dispatch('setConsume')
     
     },
     clearText() {
@@ -239,7 +227,6 @@ export default {
           if (res.data.result.length === 0 ) {
             this.message = "موردی یافت نشد"
           }
-          console.log(this.searchResults);
         })
         .catch((err) => {
           this.message = err.data.message;
@@ -253,7 +240,7 @@ export default {
 <style scoped>
 .searchPart {
   min-height: 200px;
-  max-height: 300px;
+  max-height: 200px;
 }
 
 </style>

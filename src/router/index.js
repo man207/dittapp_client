@@ -13,12 +13,20 @@ Vue.use(VueRouter)
 const routes = [
   { path: '/', component: WelcomePage },
   { path: '/signup', component: SignupPage },
-  { path: '/signin', component: SigninPage },
+  {
+    path: '/signin', component: SigninPage, beforeEnter(to, from, next) {
+      if (localStorage.getItem('token') || store.state.token) {
+        next('/dashboard')
+      } else {
+        next()
+      }
+    }
+  },
   {
     path: '/dashboard',
     component: DashboardPage,
-    beforeEnter (to, from, next) {
-      if (store.state.token) {
+    beforeEnter(to, from, next) {
+      if (localStorage.getItem('token') || store.state.token) {
         next()
       } else {
         next('/signin')
