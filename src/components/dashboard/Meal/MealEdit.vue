@@ -11,7 +11,7 @@
       <v-card-text>
         <v-container>
           <v-row align="center">
-            <v-col class="d-flex" cols="2" sm="2">
+            <v-col class="d-flex" cols="6" sm="2">
               <v-text-field
                 label="مقدار"
                 v-model="amount"
@@ -19,7 +19,7 @@
                 min="0"
               ></v-text-field>
             </v-col>
-            <v-col class="d-flex" cols="2" sm="2">
+            <v-col class="d-flex" cols="6" md="2">
               <v-select
                 :items="servingItems"
                 v-model="serving"
@@ -27,7 +27,7 @@
                 label="پیمانه"
               ></v-select>
             </v-col>
-            <v-col class="d-flex" cols="2" sm="2">
+            <v-col class="d-flex" cols="6" md="2">
               <v-text-field
                 :value="cosumeAmounts.calorie"
                 label="کالری"
@@ -35,7 +35,7 @@
                 disabled
               ></v-text-field>
             </v-col>
-            <v-col class="d-flex" cols="2" sm="2">
+            <v-col class="d-flex" cols="6" md="2">
               <v-text-field
                 :value="cosumeAmounts.protein"
                 label="پروتیین"
@@ -43,7 +43,7 @@
                 disabled
               ></v-text-field>
             </v-col>
-            <v-col class="d-flex" cols="2" sm="2">
+            <v-col class="d-flex" cols="6" md="2">
               <v-text-field
                 :value="cosumeAmounts.carb"
                 label="کربو"
@@ -51,7 +51,7 @@
                 disabled
               ></v-text-field>
             </v-col>
-            <v-col class="d-flex" cols="2" sm="2">
+            <v-col class="d-flex" cols="6" md="2">
               <v-text-field
                 :value="cosumeAmounts.fat"
                 label="چربی"

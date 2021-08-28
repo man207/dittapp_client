@@ -1,5 +1,21 @@
 <template>
   <v-card>
+    <v-card-actions>
+      <v-spacer></v-spacer>
+
+      <v-btn text @click="setDayToYesterday">
+        <v-icon> mdi-chevron-right </v-icon>
+        دیروز
+      </v-btn>
+      <v-spacer></v-spacer>
+      <v-btn text @click="setDayToToday"> بازگشت به امروز </v-btn>
+      <v-spacer></v-spacer>
+      <v-btn text @click="setDayToTomorrow">
+        فردا
+        <v-icon> mdi-chevron-left </v-icon>
+      </v-btn>
+      <v-spacer></v-spacer>
+    </v-card-actions>
     <v-card-title class="justify-center"> {{ theDay.day }} </v-card-title>
     <v-card-subtitle class="text-center"> {{ theDay.date }} </v-card-subtitle>
     <v-progress-linear
@@ -86,28 +102,27 @@
         </v-col>
       </v-row>
     </v-card-text>
-    <v-card-actions>
-      <v-spacer></v-spacer>
-
-      <v-btn text @click="setDayToYesterday">
-        <v-icon> mdi-chevron-right </v-icon>
-        دیروز
-      </v-btn>
-      <v-spacer></v-spacer>
-      <v-btn text @click="setDayToToday"> بازکشت به امروز </v-btn>
-      <v-spacer></v-spacer>
-      <v-btn text @click="setDayToTomorrow">
-        فردا
-        <v-icon> mdi-chevron-left </v-icon>
-      </v-btn>
-      <v-spacer></v-spacer>
+    <template v-if="weight">
+      
+    <v-card-title class="justify-center"> وزن: {{ weight.weight }} کیلوگرم  <weight-edit></weight-edit></v-card-title>
+    <v-card-subtitle class="text-center"> ثبت شده در: {{ weight.date }} </v-card-subtitle>
+    </template>
+    <template v-if="!weight">
+    <v-card-subtitle class="text-center"><weight-edit></weight-edit> تا آخر این روز وزنی اضافه نشده است  </v-card-subtitle>
+    </template>
+    <v-card-actions class="justify-center">
+      
     </v-card-actions>
   </v-card>
 </template>
 
 <script>
+import WeightEdit from "./WeightEdit.vue";
 
 export default {
+  components: {
+    WeightEdit
+  },
   data() {
     return {
       protein: {
@@ -155,6 +170,16 @@ export default {
         day,
       };
     },
+    weight() {
+      if (this.$store.getters.weight) {
+        console.log(this.$store.getters.weight)
+        let x = this.$store.getters.weight
+        x.date = new Date(x.date).toLocaleDateString("fa-ir")
+        return x;
+      } else {
+        return null;
+      }
+    }
   },
   methods: {
     setBurn() {

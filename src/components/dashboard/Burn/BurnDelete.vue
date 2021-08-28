@@ -6,7 +6,7 @@
       </v-btn>
     </template>
     <v-card>
-      <v-card-title> حذف غذا </v-card-title>
+      <v-card-title> حذف فعالیت </v-card-title>
       <v-card-text>
         آیا می‌خواهید {{ item.activity.name }} را حذف کنید؟
       </v-card-text>

@@ -11,8 +11,9 @@ export default new Vuex.Store({
     token: null,
     userId: null,
     day: null,
-    consume: null,
-    burn:null
+    consume: [],
+    burn:[],
+    weight:null
   },
   mutations: {
     authUser (state, userData) {
@@ -31,6 +32,9 @@ export default new Vuex.Store({
     },
     changeBurn (state , burn) {
       state.burn = burn
+    },
+    changeWeight (state , weight) {
+      state.weight = weight
     }
   },
   actions: {
@@ -79,6 +83,8 @@ export default new Vuex.Store({
       )
       dispatch('setConsume')
       dispatch('setBurn')
+      dispatch('setWeight')
+      
     },
     setConsume({commit, state } ) {
       const config = {
@@ -113,8 +119,23 @@ export default new Vuex.Store({
         .catch((err) => {
           console.log(err);
         });
+    },
+    setWeight({commit , state} ) {
+      const config = {
+        headers: { Authorization: `Bearer ${state.token}` },
+      };
+      axios
+        .get(`/profile/weight/day/${state.day}`, config)
+        .then((res) => {
+          let x = res.data.result;
+          commit('changeWeight', x);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     }
   },
+    
   getters: {
     user (state) {
       return state.user
@@ -134,6 +155,9 @@ export default new Vuex.Store({
     },
     burn (state) {
       return state.burn
+    },
+    weight (state) {
+      return state.weight
     },
   }
 })

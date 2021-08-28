@@ -1,7 +1,9 @@
 <template>
-  <v-dialog v-model="dialog" persistent max-width="900px" scrollable>
+  <v-dialog v-model="dialog" persistent max-width="700px" scrollable>
     <template v-slot:activator="{ on, attrs }">
-      <v-btn color="primary"  v-bind="attrs" v-on="on"> اضافه کردن فعالیت جدید </v-btn>
+      <v-btn color="primary" v-bind="attrs" v-on="on">
+        اضافه کردن فعالیت جدید
+      </v-btn>
     </template>
 
     <v-card>
@@ -44,8 +46,11 @@
             </v-tabs>
           </v-card>
         </v-expand-transition> -->
-        <div v-if="searchResults.length == 0" class="flex justify-center align-center">
-          {{this.message}}
+        <div
+          v-if="searchResults.length == 0"
+          class="flex justify-center align-center"
+        >
+          {{ this.message }}
         </div>
         <v-list two-line>
           <v-list-item-group v-model="selected" active-class="pink--text">
@@ -53,7 +58,9 @@
               <v-list-item :key="activity._id">
                 <template>
                   <v-list-item-content>
-                    <v-list-item-title v-text="activity.name"></v-list-item-title>
+                    <v-list-item-title
+                      v-text="activity.name"
+                    ></v-list-item-title>
 
                     <v-list-item-subtitle
                       class="text--primary"
@@ -62,7 +69,6 @@
                   </v-list-item-content>
 
                   <v-list-item-action>
-
                     <v-icon color="yellow darken-3"> mdi-plus </v-icon>
                   </v-list-item-action>
                 </template>
@@ -77,31 +83,36 @@
         </v-list>
       </v-card-text>
       <template v-if="this.searchResults[this.selected]">
-        <v-card-title>{{selectedResult.name}}</v-card-title>
+        <v-card-title>{{ selectedResult.name }}</v-card-title>
 
-      <v-card-text>
-        <v-container>
-          <v-row align="center">
-            <v-col class="d-flex" cols="2" sm="2">
-              <v-text-field label="دقیقه" v-model="minutes" type="number" min="0"></v-text-field>
-            </v-col>
-            <v-col class="d-flex" cols="2" sm="2">
-              <v-text-field
-                :value="allCalories"
-                label="کالری"
-                outlined
-                disabled
-              ></v-text-field>
-            </v-col>
-          </v-row>
-        </v-container>
-      </v-card-text>
+        <v-card-text>
+          <v-container>
+            <v-row align="center">
+              <v-col class="d-flex" cols="6" md="3">
+                <v-text-field
+                  label="دقیقه"
+                  v-model="minutes"
+                  type="number"
+                  min="0"
+                ></v-text-field>
+              </v-col>
+              <v-col class="d-flex" cols="6" md="3">
+                <v-text-field
+                  :value="allCalories"
+                  label="کالری"
+                  outlined
+                  disabled
+                ></v-text-field>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
 
-      <v-card-actions>
-        <v-btn color="deep-purple lighten-2" text @click="addToburn">
-          ثبت
-        </v-btn>
-      </v-card-actions>
+        <v-card-actions>
+          <v-btn color="deep-purple lighten-2" text @click="addToburn">
+            ثبت
+          </v-btn>
+        </v-card-actions>
       </template>
     </v-card>
   </v-dialog>
@@ -119,33 +130,35 @@ export default {
       message: "برای جستجو واژه ای وارد کنید",
       showTab: true,
       dialog: false,
-      minutes: 0
+      minutes: 0,
     };
   },
   computed: {
     allCalories() {
       //this is too long?
       let w = this.selectedResult;
-      let x = w.caloriePerMinute * this.minutes
+      let x = w.caloriePerMinute * this.minutes;
       return x;
     },
-      selectedResult() {
-        let x = {...this.searchResults[this.selected]}
-        return x
-      }
+    selectedResult() {
+      let x = { ...this.searchResults[this.selected] };
+      return x;
+    },
   },
   methods: {
     addToburn() {
       let activity = {
-      "activity": this.selectedResult._id,
-      "minutes" : this.minutes,
-      "date" : this.$store.getters.day,
-      }
+        activity: this.selectedResult._id,
+        minutes: this.minutes,
+        date: this.$store.getters.day,
+      };
+      console.log(activity)
+
       const config = {
         headers: { Authorization: `Bearer ${this.$store.state.token}` },
       };
       axios
-        .post(`/profile/burn/add`, activity,  config)
+        .post(`/profile/burn/add`, activity, config)
         .then((res) => {
           Object.assign(this.$data, this.$options.data.call(this));
           console.log(res);
@@ -154,7 +167,6 @@ export default {
           this.message = err.message;
         });
       this.$store.dispatch("setBurn");
-    
     },
     clearText() {
       this.$refs.searchBar.blur();
@@ -172,8 +184,8 @@ export default {
         .get(`/activity/search/${this.searchPhrase}`, config)
         .then((res) => {
           this.searchResults = res.data.result;
-          if (res.data.result.length === 0 ) {
-            this.message = "موردی یافت نشد"
+          if (res.data.result.length === 0) {
+            this.message = "موردی یافت نشد";
           }
           console.log(this.searchResults);
         })
@@ -181,15 +193,13 @@ export default {
           this.message = err.data.message;
         });
     },
-  }
-
+  },
 };
 </script>
 
 <style scoped>
 .searchPart {
   min-height: 200px;
-   max-height: 200px;
+  max-height: 200px;
 }
-
 </style>

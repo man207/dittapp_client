@@ -1,32 +1,25 @@
 <template>
   <v-dialog v-model="dialog" max-width="300px">
     <template v-slot:activator="{ on, attrs }">
-      <v-btn v-bind="attrs" v-on="on" icon>
+      <v-btn v-bind="attrs" v-on="on" icon small>
         <v-icon color="blue ">mdi-pencil</v-icon>
       </v-btn>
     </template>
     <v-card>
-      <v-card-title>{{ item.activity.name }}</v-card-title>
+      <v-card-title>ثبت وزن</v-card-title>
 
       <v-card-text>
         <v-container>
           <v-row align="center">
-            <v-col class="d-flex" cols="6" md="6">
+            <v-col class="d-flex justify-center" cols="12" md="6">
               <v-text-field
-                label="دقیقه"
-                v-model="minutes"
+                label="وزن"
+                v-model="weight"
                 type="number"
                 min="0"
               ></v-text-field>
             </v-col>
-            <v-col class="d-flex" cols="6" md="6">
-              <v-text-field
-                :value="allCalories"
-                label="کالری"
-                outlined
-                disabled
-              ></v-text-field>
-            </v-col>
+            
           </v-row>
         </v-container>
       </v-card-text>
@@ -46,41 +39,35 @@
 import axios from "axios";
 
 export default {
-  props: {
-    item: Object,
-  },
+
   data() {
     return {
       dialog: false,
-      minutes: 0,
+      weight: 0,
     };
   },
-  computed: {
-    allCalories() {
-      //this is too long?
-      let w = this.item.activity;
-      let x = w.caloriePerMinute * this.minutes;
-      return x;
-    },
-  },
-  mounted() {
-    this.minutes = this.item.minutes;
+  watch: {
+    dialog() {
+      console.log(this.$store.getters.weight.weight)
+      this.weight = this.$store.getters.weight.weight
+    }
   },
   methods: {
     updateItem() {
       console.log(this.item);
-      let activity = {
-        minutes: this.minutes,
+      let weight = {
+        weight: this.weight,
+        date: this.$store.getters.day,
       };
-
+      console.log(weight)
       const config = {
         headers: { Authorization: `Bearer ${this.$store.state.token}` },
       };
       axios
-        .put(`/profile/burn/${this.item._id}`, activity, config)
+        .post(`/profile/weight/add`, weight, config)
         .then((res) => {
           console.log(res);
-          this.$store.dispatch("setBurn");
+          this.$store.dispatch("setWeight");
           this.dialog = false;
         })
         .catch((err) => {
