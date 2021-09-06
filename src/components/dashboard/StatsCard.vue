@@ -1,5 +1,5 @@
 <template>
-  <v-card>
+  <v-card elevation="12" outlined>
     <v-card-actions>
       <v-spacer></v-spacer>
 
@@ -26,21 +26,15 @@
     <br />
     <v-card-text>
       <v-row align="center" justify="center">
-        <v-col class="pt-0 mt-0 pb-4" cols="10" sm="6">
+        <v-col class="pt-0 mt-0 pb-8" cols="10" sm="6">
           <v-row justify="space-around" align="center">
-            <v-chip outlined color="blue darken-2" dark>
-              {{ calorie.consumed }}
-              <v-avatar right class="pb-1">
-                <v-icon color="blue darken-2">mdi-food</v-icon>
-              </v-avatar>
-            </v-chip>
+            <div class="text-center text-h6 blue--text text--darken-2">
 
-            <v-chip outlined color="blue">
+              {{ calorie.consumed }}
+                از
               {{ calorie.burned }}
-              <v-avatar right>
-                <v-icon color="blue">mdi-fire</v-icon>
-              </v-avatar>
-            </v-chip>
+                کالری
+            </div>
           </v-row>
         </v-col>
         <v-col cols="12" md="12">
@@ -103,16 +97,19 @@
       </v-row>
     </v-card-text>
     <template v-if="weight">
-      
-    <v-card-title class="justify-center"> وزن: {{ weight.weight }} کیلوگرم  <weight-edit></weight-edit></v-card-title>
-    <v-card-subtitle class="text-center"> ثبت شده در: {{ weight.date }} </v-card-subtitle>
+      <v-card-title class="justify-center">
+        وزن: {{ weight.weight }} کیلوگرم <weight-edit></weight-edit
+      ></v-card-title>
+      <v-card-subtitle class="text-center">
+        ثبت شده در: {{ weight.date }}
+      </v-card-subtitle>
     </template>
     <template v-if="!weight">
-    <v-card-subtitle class="text-center"><weight-edit></weight-edit> تا آخر این روز وزنی اضافه نشده است  </v-card-subtitle>
+      <v-card-subtitle class="text-center"
+        ><weight-edit></weight-edit> تا آخر این روز وزنی اضافه نشده است
+      </v-card-subtitle>
     </template>
-    <v-card-actions class="justify-center">
-      
-    </v-card-actions>
+    <v-card-actions class="justify-center"> </v-card-actions>
   </v-card>
 </template>
 
@@ -121,7 +118,7 @@ import WeightEdit from "./WeightEdit.vue";
 
 export default {
   components: {
-    WeightEdit
+    WeightEdit,
   },
   data() {
     return {
@@ -140,17 +137,19 @@ export default {
       calorie: {
         burned: 0,
         consumed: 0,
-        recommended: 0,
       },
       loading: false,
     };
   },
   computed: {
     consumes() {
-      return this.$store.getters.consume;
+      return this.$store.state.consume;
     },
     burns() {
-      return this.$store.getters.burn;
+      return this.$store.state.burn;
+    },
+    recommended() {
+      return this.$store.state.recommended;
     },
     theDay() {
       let x = this.$store.state.day.split("-");
@@ -171,15 +170,14 @@ export default {
       };
     },
     weight() {
-      if (this.$store.getters.weight) {
-        console.log(this.$store.getters.weight)
-        let x = this.$store.getters.weight
-        x.date = new Date(x.date).toLocaleDateString("fa-ir")
+      if (this.$store.state.weight) {
+        let x = this.$store.getters.weight;
+        x.date = new Date(x.date).toLocaleDateString("fa-ir");
         return x;
       } else {
         return null;
       }
-    }
+    },
   },
   methods: {
     setBurn() {
@@ -188,6 +186,18 @@ export default {
         this.calorie.burned =
           burn.minutes * burn.activity.caloriePerMinute + this.calorie.burned;
       });
+      this.calorie.burned += this.recommended.calorie;
+      if (this.recommended.macroRatio) {
+        this.protein.recommended = parseInt(
+          (this.recommended.macroRatio.protein * this.calorie.burned) / 4
+        );
+        this.carb.recommended = parseInt(
+          (this.recommended.macroRatio.carb * this.calorie.burned) / 4
+        );
+        this.fat.recommended = parseInt(
+          (this.recommended.macroRatio.fat * this.calorie.burned) / 9
+        );
+      }
     },
     setConsume() {
       this.protein.taken = 0;
@@ -226,7 +236,6 @@ export default {
           tomorrow.getMonth() + 1
         }-${tomorrow.getDate()}`
       );
-      
     },
     setDayToYesterday() {
       let day = this.$store.state.day.replaceAll("-", "/");
@@ -256,7 +265,13 @@ export default {
       this.setBurn();
     },
   },
-  mounted() {},
+  mounted() {
+    let today = new Date();
+    this.$store.dispatch(
+      "setDay",
+      `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`
+    );
+  },
 };
 </script>
 

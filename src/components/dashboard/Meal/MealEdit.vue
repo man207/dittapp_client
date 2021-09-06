@@ -94,10 +94,24 @@ export default {
       let w = this.item.food;
 
       let x = {
-        calorie: w.calorie * this.amount * this.serving.value,
-        protein: w.protein * this.amount * this.serving.value,
-        carb: w.carb * this.amount * this.serving.value,
-        fat: w.fat * this.amount * this.serving.value,
+        calorie:
+          Math.round(
+            (w.calorie * this.amount * this.serving.value + Number.EPSILON) *
+              100
+          ) / 100,
+        protein:
+          Math.round(
+            (w.protein * this.amount * this.serving.value + Number.EPSILON) *
+              100
+          ) / 100,
+        carb:
+          Math.round(
+            (w.carb * this.amount * this.serving.value + Number.EPSILON) * 100
+          ) / 100,
+        fat:
+          Math.round(
+            (w.fat * this.amount * this.serving.value + Number.EPSILON) * 100
+          ) / 100,
       };
       return x;
     },

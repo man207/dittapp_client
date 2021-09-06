@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="dialog" persistent max-width="700px" scrollable>
     <template v-slot:activator="{ on, attrs }">
-      <v-btn color="primary" v-bind="attrs" v-on="on">
+      <v-btn color="primary" text v-bind="attrs" v-on="on">
         اضافه کردن فعالیت جدید
       </v-btn>
     </template>
@@ -138,7 +138,7 @@ export default {
       //this is too long?
       let w = this.selectedResult;
       let x = w.caloriePerMinute * this.minutes;
-      return x;
+      return Math.round((x + Number.EPSILON) * 100) / 100;
     },
     selectedResult() {
       let x = { ...this.searchResults[this.selected] };
@@ -152,7 +152,6 @@ export default {
         minutes: this.minutes,
         date: this.$store.getters.day,
       };
-      console.log(activity)
 
       const config = {
         headers: { Authorization: `Bearer ${this.$store.state.token}` },
@@ -187,7 +186,6 @@ export default {
           if (res.data.result.length === 0) {
             this.message = "موردی یافت نشد";
           }
-          console.log(this.searchResults);
         })
         .catch((err) => {
           this.message = err.data.message;

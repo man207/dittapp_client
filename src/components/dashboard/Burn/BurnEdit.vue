@@ -60,7 +60,7 @@ export default {
       //this is too long?
       let w = this.item.activity;
       let x = w.caloriePerMinute * this.minutes;
-      return x;
+      return Math.round((x + Number.EPSILON) * 100) / 100;
     },
   },
   mounted() {

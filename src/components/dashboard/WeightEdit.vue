@@ -17,9 +17,9 @@
                 v-model="weight"
                 type="number"
                 min="0"
+                max="300"
               ></v-text-field>
             </v-col>
-            
           </v-row>
         </v-container>
       </v-card-text>
@@ -27,9 +27,7 @@
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn color="red lighten-1" text @click="dialog = false"> لغو </v-btn>
-        <v-btn color="blue" text @click="updateItem">
-          ثبت
-        </v-btn>
+        <v-btn color="blue" text @click="updateItem"> ثبت </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -39,7 +37,6 @@
 import axios from "axios";
 
 export default {
-
   data() {
     return {
       dialog: false,
@@ -48,27 +45,24 @@ export default {
   },
   watch: {
     dialog() {
-      console.log(this.$store.getters.weight.weight)
-      this.weight = this.$store.getters.weight.weight
-    }
+      this.weight = this.$store.getters.weight.weight;
+    },
   },
   methods: {
     updateItem() {
-      console.log(this.item);
       let weight = {
         weight: this.weight,
         date: this.$store.getters.day,
       };
-      console.log(weight)
       const config = {
         headers: { Authorization: `Bearer ${this.$store.state.token}` },
       };
       axios
         .post(`/profile/weight/add`, weight, config)
-        .then((res) => {
-          console.log(res);
+        .then(() => {
           this.$store.dispatch("setWeight");
           this.dialog = false;
+
         })
         .catch((err) => {
           console.log(err);

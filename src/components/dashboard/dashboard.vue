@@ -1,17 +1,16 @@
 <template>
   <v-container style="max-width: 720px">
     <v-row>
-      <v-col cols="12">
+      <v-col cols="12" md="12">
         <stats-card></stats-card>
       </v-col>
-    </v-row>
-    <div class="text-h5 pt-4">تغذیه</div>
-    <v-row>
-      <meal-card></meal-card>
-    </v-row>
-    <div class="text-h5 pt-4">فعالیت‌ها</div>
-    <v-row>
-      <burn-card></burn-card>
+
+      <v-col cols="12" md="6">
+        <meal-card></meal-card>
+      </v-col>
+      <v-col cols="12" md="6">
+        <burn-card></burn-card>
+      </v-col>
     </v-row>
   </v-container>
 </template>
@@ -29,5 +28,17 @@ export default {
     MealCard,
     BurnCard,
   },
+  mounted() {
+    if (!this.$store.state.day) {
+      let today = new Date();
+      this.$store.dispatch(
+        "setDay",
+        `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`
+      );
+    }
+  },
 };
 </script>
+
+<style scoped>
+</style>

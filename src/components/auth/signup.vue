@@ -2,7 +2,7 @@
   <v-container fill-height="fill-height">
     <v-layout align-center justify-center>
       <v-flex class="signup-form text-center">
-        <v-card light="light">
+        <v-card light="light" elevation="12">
           <v-card-text>
             <div class="subheading">ساخت حساب کاربری</div>
             <v-form v-model="valid" ref="form">
