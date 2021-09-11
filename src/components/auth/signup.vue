@@ -2,7 +2,7 @@
   <v-container fill-height="fill-height">
     <v-layout align-center justify-center>
       <v-flex class="signup-form text-center">
-        <v-card light="light">
+        <v-card light="light" elevation="12">
           <v-card-text>
             <div class="subheading">ساخت حساب کاربری</div>
             <v-form v-model="valid" ref="form">
@@ -36,11 +36,11 @@
                 :rules="rules.password"
               ></v-text-field>
               <v-text-field
-                v-model="password"
+                v-model="confirmPassword"
                 light="light"
                 label="تکرار گذرواژه"
-                type="confirmPassword"
-                :rules="rules.password"
+                type="password"
+                :rules="rules.confirmPassword"
               ></v-text-field>
               <v-checkbox
                 light="light"
@@ -121,6 +121,10 @@ export default {
         password: [
           (v) => !!v || "گذر واژه الزامی است",
           (v) => v.length >= 5 || "طول گذرواژه بیشتر از 5 می‌باشد",
+        ],
+        confirmPassword: [
+          (v) => !!v || "تکرار گذر واژه الزامی است",
+          (v) => this.password == v || "تکرار با گذرواژه برابر نیست",
         ],
         policy: [
           (v) => v === true || "پذیرش قوانین الزامی است",

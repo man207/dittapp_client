@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import axios from '../components/auth/axios-auth'
+import axios from "axios";
 
 import router from '../router'
 
@@ -8,56 +8,83 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    token: null,
-    userId: null
+    token: '',
+    userId: '',
+    day: null,
+    consume: [],
+    burn: [],
+    weight: {},
+    recommended: {},
+    theme: ''
   },
   mutations: {
-    authUser (state, userData) {
+    authUser(state, userData) {
       state.token = userData.token
       state.userId = userData.userId
+
     },
-    clearAuthData (state) {
+    clearAuthData(state) {
       state.token = null
       state.userId = null
+      state.recommended = {}
+    },
+    changeDay(state, day) {
+      state.day = day.replaceAll('/', '-')
+    },
+    changeConsume(state, consume) {
+      state.consume = consume
+    },
+    changeBurn(state, burn) {
+      state.burn = burn
+    },
+    changeWeight(state, weight) {
+      state.weight = weight
+    },
+    changeRecommended(state, recommended) {
+      recommended.macroRatio = {
+        fat: (recommended.fat * 9 / recommended.calorie),
+        carb: (recommended.carb * 4 / recommended.calorie),
+        protein: (recommended.protein * 4 / recommended.calorie)
+      }
+
+      state.recommended = recommended
+    },
+    changeTheme(state, theme) {
+
+      state.theme = theme;
     }
   },
   actions: {
-    setLogoutTimer ({commit}, expirationTime) {
+    setLogoutTimer({ commit }, expirationTime) {
+
       setTimeout(() => {
         commit('clearAuthData')
       }, expirationTime * 1000)
     },
-    login ({commit, dispatch}, authData) {
-      axios.post('/login', {
-        email: authData.email,
-        password: authData.password,
-      })
-        .then(res => {
-          console.log(res)
-          const now = new Date()
-          const expirationDate = new Date(now.getTime() + res.data.expiresIn * 1000)
-          if (authData.rememberMe) {
-            localStorage.setItem('token', res.data.token)
-            localStorage.setItem('userId', res.data.userId)
-            localStorage.setItem('expirationDate', expirationDate)
-          }
+    login({ commit, dispatch }, data) {
 
-          commit('authUser', {
-            token: res.data.token,
-            userId: res.data.userId
-          })
-          dispatch('setLogoutTimer', res.data.expiresIn)
-        })
-        .catch(error => console.log(error))
+      commit('authUser', {
+        token: data.token,
+        userId: data.userId
+      })
+
+      dispatch('setLogoutTimer', data.expiresIn)
+
     },
-    tryAutoLogin ({commit}) {
+    tryAutoLogin({ commit }) {
       const token = localStorage.getItem('token')
       if (!token) {
         return
       }
-      const expirationDate = localStorage.getItem('expirationDate')
+      const expirationDate = new Date(localStorage.getItem('expirationDate'))
       const now = new Date()
       if (now >= expirationDate) {
+        localStorage.removeItem('expirationDate')
+        localStorage.removeItem('token')
+        localStorage.removeItem('userId')
+        localStorage.removeItem('themeName')
+        commit('clearAuthData')
+        router.go('/')
         return
       }
       const userId = localStorage.getItem('userId')
@@ -66,20 +93,116 @@ export default new Vuex.Store({
         userId: userId
       })
     },
-    logout ({commit}) {
-      commit('clearAuthData')
+    logout({ commit }) {
       localStorage.removeItem('expirationDate')
       localStorage.removeItem('token')
       localStorage.removeItem('userId')
-      router.replace('/signin')
+      localStorage.removeItem('themeName')
+      commit('clearAuthData')
+      router.go('/')
+    },
+    setDay({ commit, dispatch }, day) {
+      commit('changeDay',
+        day
+      )
+      dispatch('setConsume')
+      dispatch('setBurn')
+      dispatch('setWeight')
+      dispatch('setRecommended')
+
+    },
+    setConsume({ commit, state }) {
+      const config = {
+        headers: { Authorization: `Bearer ${state.token}` },
+      };
+      axios
+        .get(`/profile/consume/day/${state.day}`, config)
+        .then((res) => {
+          let x = res.data.result;
+          x.map(food => {
+            let w = food.food;
+            if (w.unit == 'gr') w.unit = 'گرم'
+            if (w.unit == 'ml') w.unit = 'میلی لیتر'
+          })
+          commit('changeConsume', x)
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+
+    },
+    setBurn({ commit, state }) {
+      const config = {
+        headers: { Authorization: `Bearer ${state.token}` },
+      };
+      axios
+        .get(`/profile/burn/day/${state.day}`, config)
+        .then((res) => {
+          let x = res.data.result;
+          commit('changeBurn', x);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
+    setWeight({ commit, state }) {
+      const config = {
+        headers: { Authorization: `Bearer ${state.token}` },
+      };
+      axios
+        .get(`/profile/weight/day/${state.day}`, config)
+        .then((res) => {
+          let x = res.data.result;
+          commit('changeWeight', x);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
+    setRecommended({ commit, state }) {
+      const config = {
+        headers: { Authorization: `Bearer ${state.token}` },
+      };
+      axios
+        .get(`/profile/biometric/`, config)
+        .then((res) => {
+          let x = res.data.result;
+          commit('changeRecommended', x);
+        })
+        .catch((err) => {
+          if (err.response.status == 404) {
+            router.replace('/firsttime')
+          }
+        });
+    },
+    setTheme({ commit }, themeName) {
+      localStorage.setItem('themeName', themeName)
+      commit('changeTheme', themeName)
     }
   },
+
   getters: {
-    user (state) {
+    user(state) {
       return state.user
     },
-    isAuthenticated (state) {
-      return state.token !== null
-    }
+    token(state) {
+      return state.token
+    },
+    isAuthenticated(state) {
+      return state.token.length > 0
+    },
+    day(state) {
+      let x = state.day.replaceAll('-', '/')
+      return new Date(x)
+    },
+    consume(state) {
+      return state.consume
+    },
+    burn(state) {
+      return state.burn
+    },
+    weight(state) {
+      return state.weight
+    },
   }
 })
